@@ -36,6 +36,7 @@ var SmartBustop = React.createClass({
   getInitialState: function () {
     var subscription = DeviceEventEmitter.addListener('beaconsDidRange', (data) => {
         var nearestBeacon = data.beacons[0];
+        if ( !nearestBeacon ) return;
         this.setState({ beacon: this._getStationIdFromBeacon(nearestBeacon) });
 
         if ( this.state.isInitiating ) {
