@@ -17,23 +17,23 @@ This app is made with fonts provided by companies below
 
 ### Run on Device
 
-1. Make sure jsCodeLocation has been set properly AppDelegate.m
-  `//  jsCodeLocation = [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle"];
+1. Make sure jsCodeLocation has been set properly AppDelegate.m<br/>
+`// jsCodeLocation = [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle"];
   jsCodeLocation = [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];`
 
 
-2. Run command below on terminal
-  `react-native bundle`
+2. Run command below on terminal<br/>
+`react-native bundle`
 
 3. Run or build on xcode
 
 ### Run on Simulator
 
-1. Make sure jsCodeLocation has been set properly AppDelegate.m
-  `  jsCodeLocation = [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle"];
-  //  jsCodeLocation = [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];`
+1. Make sure jsCodeLocation has been set properly AppDelegate.m<br/>
+`  jsCodeLocation = [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle"];
+// jsCodeLocation = [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];`
 
-2. Run command below on terminal
-  `npm start`
+2. Run command below on terminal<br/>
+`npm start`
 
 3. Run or build on xcode
