@@ -43005,13 +43005,6 @@ var styles = StyleSheet.create({
     right: -20,
     position: 'absolute'
   },
-
-  welcome: {
-    fontSize: 20,
-    fontFamily: 'BM HANNA 11yrs old OTF',
-    textAlign: 'center',
-    margin: 10,
-  },
   instructions: {
     textAlign: 'center',
     color: '#333333',

@@ -18,6 +18,7 @@ This app is made with fonts provided by companies below
 ### Run on Device
 
 1. Make sure jsCodeLocation has been set properly AppDelegate.m
+
 `
 //  jsCodeLocation = [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle"];
   jsCodeLocation = [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
@@ -31,6 +32,7 @@ This app is made with fonts provided by companies below
 ### Run on Simulator
 
 1. Make sure jsCodeLocation has been set properly AppDelegate.m
+
 `
   jsCodeLocation = [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle"];
 //  jsCodeLocation = [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
