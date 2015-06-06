@@ -5,19 +5,11 @@
 'use strict';
 
 var React = require('react-native');
-var {
-  AppRegistry,
-  StyleSheet,
-  Text,
-  TextInput,
-  ListView,
-  View,
-  TouchableHighlight,
-  DeviceEventEmitter,
-  ActivityIndicatorIOS
-} = React;
+var { AppRegistry, StyleSheet, Text, TextInput, ListView, View, ScrollView, Image, TouchableHighlight, DeviceEventEmitter, ActivityIndicatorIOS, TouchableOpacity } = React;
 var Beacons = require('react-native-ibeacon');
+
 var _ = require('underscore');
+var styles = require('./index.style.js');
 
 var region = {
   identifier: 'SmartBustop',
@@ -35,16 +27,15 @@ var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 var SmartBustop = React.createClass({
   getInitialState: function () {
     var subscription = DeviceEventEmitter.addListener('beaconsDidRange', (data) => {
-        var nearestBeacon = data.beacons[0];
-        if ( !nearestBeacon ) return;
-        this.setState({ beacon: this._getStationIdFromBeacon(nearestBeacon) });
+      var nearestBeacon = data.beacons[0];
+      if ( !nearestBeacon ) return;
+      this.setState({ beacon: this._getStationIdFromBeacon(nearestBeacon) });
 
-        if ( this.state.isInitiating ) {
-          this.onBeaconPress(this._getStationIdFromBeacon(nearestBeacon));
-          this.setState({ isInitiating: false });
-        }
+      if ( this.state.isInitiating ) {
+        this.onBeaconPress(this._getStationIdFromBeacon(nearestBeacon));
+        this.setState({ isInitiating: false });
       }
-    );
+    });
 
     return {
       curText: '',
@@ -56,39 +47,49 @@ var SmartBustop = React.createClass({
   },
 
   render: function() {
-    var listView = this.state.isLoading
-      ? ( <ActivityIndicatorIOS hidden='true' size='large' /> )
-      : ( <ListView
-        dataSource={this.state.dataSource}
-        renderRow={this.renderRow}
-      /> );
+    var listView = this._getListView();
+    var resultSeparator = (this.state.stationTitle)
+      ? (<View style={styles.resultSeparator} />)
+      : (<View></View>);
 
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome}>
-          정류장 번호를 입력하세요
-        </Text>
-        <View style={styles.inputs}>
-          <TextInput
-            style={styles.textInput}
-            onChangeText={this.handleOnChange}
-            keyboardType="number-pad"
-            autoFocus={true}
-            value={this.state.beacon}
-            />
-          <TouchableHighlight
-            style={styles.beacon}
-            onPress={this.onBeaconPress}
-            underlayColor="#48BBEC">
-            <View>
-            <Text style={styles.beaconTitle}>현재위치:</Text>
-              <Text style={styles.beaconText}>{this._beautifyStationId(this.state.beacon)}</Text>
+        <Image
+          style={styles.backgroundImage}
+          source={require('image!background')}>
+          <View style={styles.inputs}>
+            <View style={styles.inputLeft}>
+              <TextInput
+                style={styles.textInput}
+                onChangeText={this.handleOnChange}
+                keyboardType="number-pad"
+                autoFocus={true}
+                placeholder="정류장 번호"
+                value={this.state.beacon}
+                />
+              <View style={styles.inputSeparator}></View>
             </View>
-          </TouchableHighlight>
-        </View>
-        <View style={styles.result}>
-          {listView}
-        </View>
+            <View style={styles.inputRight}>
+              <Text style={styles.beaconTitle}>현재정류장</Text>
+              <TouchableOpacity
+                style={styles.beacon}
+                onPress={this.onBeaconPress}>
+                <Image
+                  style={{width: 120, height: 50}}
+                  source={require('image!BattenBefore')}>
+                  <Text style={styles.beaconText}>
+                    {this._beautifyStationId(this.state.beacon)}
+                  </Text>
+                </Image>
+              </TouchableOpacity>
+            </View>
+          </View>
+          <ScrollView style={styles.result}>
+            <Text style={styles.resultTitle}>{this.state.stationTitle}</Text>
+            {resultSeparator}
+            {listView}
+          </ScrollView>
+        </Image>
       </View>
     );
   },
@@ -100,30 +101,68 @@ var SmartBustop = React.createClass({
 
   handleOnChange: function (text) {
     if (text.length > 5 || text.length < 5)
-      return this.setState({ dataSource: ds.cloneWithRows([]) });
+      return this.setState({
+        stationTitle: null,
+        dataSource: ds.cloneWithRows([])
+      });
     this._getData(text);
   },
 
   renderRow: (rowData) => {
+    if (rowData.arrmsg1 === '운행종료') return (<View/>);
+
+    var busStyleRaw = {
+      fontSize: 28,
+      marginRight: 10,
+      fontFamily: 'NanumGothicBold',
+    }
+    switch (rowData.routeType) {
+      case "3":
+        busStyleRaw.color = '#176097';
+        break;
+      case "2":
+      case "4":
+        busStyleRaw.color = '#73B074';
+        break;
+      case "5":
+        busStyleRaw.color = '#DBDF00';
+        break;
+      case "6":
+      case "7":
+        busStyleRaw.color = '#E62433';
+        break;
+      case "8":
+        busStyleRaw.color = '#0D8B84';
+        break;
+      default:
+        busStyleRaw.color = '#2D383E';
+        break;
+    }
+    var busStyle = new StyleSheet.create({style: busStyleRaw});
+    console.log ('nextBus:', rowData.nextBus)
+    var lastBus = (rowData.isLast1 !== '0')
+      ? (<Image
+          style={styles.lastCall}
+          source={require('image!makcha')} />)
+      : (<View/>);
     return (
       <TouchableHighlight
-        underlayColor='#dddddd'>
-        <View>
+        underlayColor='#dddddd'
+        style={{marginLeft: 10, marginRight: 10}}>
+        <View style={{marginLeft: 5, marginRight: 5}}>
+          {{lastBus}}
           <View style={styles.row}>
-            <Text style={styles.busNumber}>
+            <Text style={busStyle.style}>
               {rowData.rtNm}
             </Text>
-            <Text style={styles.busMsg}>
-              {rowData.arrmsg1}
-            </Text>
-            <Text style={styles.destination}>
-              {rowData.stationNm1}행
-            </Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={{flex: 1}}>
-              { (rowData.nextBus === "Y") ? "막차" : ""}
-            </Text>
+            <View style={styles.busInfo}>
+              <Text style={styles.busMsg}>
+                {rowData.arrmsg1}
+              </Text>
+              <Text style={styles.destination}>
+                {rowData.stationNm1}행
+              </Text>
+            </View>
           </View>
           <View style={styles.separator} />
         </View>
@@ -140,6 +179,7 @@ var SmartBustop = React.createClass({
         var array = JSON.parse(restext).resultList;
         var sorted = _.sortBy(array, (elem) => parseInt(elem.traTime1));
         this.setState({
+          stationTitle: array[0].stNm,
           dataSource: ds.cloneWithRows(sorted),
           isLoading: false
         });
@@ -160,78 +200,38 @@ var SmartBustop = React.createClass({
   },
 
   _beautifyStationId: function (id) {
+    if (id.length === 0) return '없음';
     return id.slice(0, 2)+'-'+id.slice(2, id.length)
   },
-});
 
-var styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    // alignItems: 'center',
-    backgroundColor: '#F5FCFF',
+  _getListView: function () {
+    if (this.state.stationTitle){
+      return (
+        <ListView
+          dataSource={this.state.dataSource}
+          renderRow={this.renderRow}
+          />
+      );
+    } else if (this.state.isLoading) {
+      return (
+        <Image
+          style={styles.loadingIndicator}
+          source={require('image!windowLoading')}>
+          <ActivityIndicatorIOS
+            style={{top: 70, right: 75}}
+            color='#4C358A'
+            hidden='false'
+            size='small' />
+        </Image>
+      );
+    } else {
+      return  (
+        <Image
+          style={styles.loadingIndicator}
+          source={require('image!windowEmpty')} />
+      );
+    }
   },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
-    flex: 1
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
-  },
-  inputs: {
-    flexDirection: 'row',
-    flex: 1
-  },
-    textInput: {
-      flex: 1,
-      height: 50,
-      textAlign: 'center',
-      fontSize: 25,
-      paddingLeft: 18,
-      borderColor: 'gray',
-      borderWidth: 1,
-      marginLeft: 5,
-      marginRight: 5,
-    },
-    beacon: {
-      height: 50,
-      padding: 5,
-      flex: 1,
-    },
-    beaconTitle: {
-      fontSize: 14,
-      color: "#AAA"
-    },
-    beaconText: {
-      fontSize: 20,
-    },
-  result: {
-    flex: 10,
-    marginTop: 10,
-  },
-    busNumber: {
-      flex: 2,
-      color: '#900'
-    },
-    busMsg: {
-      flex: 3
-    },
-    destination: {
-      flex: 4
-    },
-    separator: {
-      height: 1,
-      backgroundColor: '#CCCCCC',
-    },
-
-  row: {
-    flexDirection: "row",
-    padding: 10,
-  }
 });
 
 AppRegistry.registerComponent('SmartBustop', () => SmartBustop);

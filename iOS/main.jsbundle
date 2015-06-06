@@ -1087,26 +1087,18 @@ if (!String.prototype.repeat) {
   }
 })();
 
-__d('SmartBustop/index.ios',["react-native/Libraries/react-native/react-native","RNBeacon","underscore/underscore"],function(global, require, requireDynamic, requireLazy, module, exports) {  /**
+__d('SmartBustop/index.ios',["react-native/Libraries/react-native/react-native","RNBeacon","underscore/underscore","SmartBustop/index.style","image!background","image!BattenBefore","image!makcha","image!windowLoading","image!windowEmpty"],function(global, require, requireDynamic, requireLazy, module, exports) {  /**
  * Sample React Native App
  * https://github.com/facebook/react-native
  */
 'use strict';
 
 var React = require('react-native/Libraries/react-native/react-native');
-var $__0=
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  React,AppRegistry=$__0.AppRegistry,StyleSheet=$__0.StyleSheet,Text=$__0.Text,TextInput=$__0.TextInput,ListView=$__0.ListView,View=$__0.View,TouchableHighlight=$__0.TouchableHighlight,DeviceEventEmitter=$__0.DeviceEventEmitter,ActivityIndicatorIOS=$__0.ActivityIndicatorIOS;
+var $__0=               React,AppRegistry=$__0.AppRegistry,StyleSheet=$__0.StyleSheet,Text=$__0.Text,TextInput=$__0.TextInput,ListView=$__0.ListView,View=$__0.View,ScrollView=$__0.ScrollView,Image=$__0.Image,TouchableHighlight=$__0.TouchableHighlight,DeviceEventEmitter=$__0.DeviceEventEmitter,ActivityIndicatorIOS=$__0.ActivityIndicatorIOS,TouchableOpacity=$__0.TouchableOpacity;
 var Beacons = require('RNBeacon');
+
 var _ = require('underscore/underscore');
+var styles = require('SmartBustop/index.style');
 
 var region = {
   identifier: 'SmartBustop',
@@ -1124,16 +1116,15 @@ var ds = new ListView.DataSource({rowHasChanged: function(r1, r2)  {return r1 !=
 var SmartBustop = React.createClass({displayName: "SmartBustop",
   getInitialState: function () {
     var subscription = DeviceEventEmitter.addListener('beaconsDidRange', function(data)  {
-        var nearestBeacon = data.beacons[0];
-        if ( !nearestBeacon ) return;
-        this.setState({ beacon: this._getStationIdFromBeacon(nearestBeacon) });
+      var nearestBeacon = data.beacons[0];
+      if ( !nearestBeacon ) return;
+      this.setState({ beacon: this._getStationIdFromBeacon(nearestBeacon) });
 
-        if ( this.state.isInitiating ) {
-          this.onBeaconPress(this._getStationIdFromBeacon(nearestBeacon));
-          this.setState({ isInitiating: false });
-        }
-      }.bind(this)
-    );
+      if ( this.state.isInitiating ) {
+        this.onBeaconPress(this._getStationIdFromBeacon(nearestBeacon));
+        this.setState({ isInitiating: false });
+      }
+    }.bind(this));
 
     return {
       curText: '',
@@ -1145,38 +1136,48 @@ var SmartBustop = React.createClass({displayName: "SmartBustop",
   },
 
   render: function() {
-    var listView = this.state.isLoading
-      ? ( React.createElement(ActivityIndicatorIOS, {hidden: "true", size: "large"}) )
-      : ( React.createElement(ListView, {
-        dataSource: this.state.dataSource, 
-        renderRow: this.renderRow}
-      ) );
+    var listView = this._getListView();
+    var resultSeparator = (this.state.stationTitle)
+      ? (React.createElement(View, {style: styles.resultSeparator}))
+      : (React.createElement(View, null));
 
     return (
       React.createElement(View, {style: styles.container}, 
-        React.createElement(Text, {style: styles.welcome}, 
-          "정류장 번호를 입력하세요"
-        ), 
-        React.createElement(View, {style: styles.inputs}, 
-          React.createElement(TextInput, {
-            style: styles.textInput, 
-            onChangeText: this.handleOnChange, 
-            keyboardType: "number-pad", 
-            autoFocus: true, 
-            value: this.state.beacon}
+        React.createElement(Image, {
+          style: styles.backgroundImage, 
+          source: require('image!background')}, 
+          React.createElement(View, {style: styles.inputs}, 
+            React.createElement(View, {style: styles.inputLeft}, 
+              React.createElement(TextInput, {
+                style: styles.textInput, 
+                onChangeText: this.handleOnChange, 
+                keyboardType: "number-pad", 
+                autoFocus: true, 
+                placeholder: "정류장 번호", 
+                value: this.state.beacon}
+                ), 
+              React.createElement(View, {style: styles.inputSeparator})
             ), 
-          React.createElement(TouchableHighlight, {
-            style: styles.beacon, 
-            onPress: this.onBeaconPress, 
-            underlayColor: "#48BBEC"}, 
-            React.createElement(View, null, 
-            React.createElement(Text, {style: styles.beaconTitle}, "현재위치:"), 
-              React.createElement(Text, {style: styles.beaconText}, this._beautifyStationId(this.state.beacon))
+            React.createElement(View, {style: styles.inputRight}, 
+              React.createElement(Text, {style: styles.beaconTitle}, "현재정류장"), 
+              React.createElement(TouchableOpacity, {
+                style: styles.beacon, 
+                onPress: this.onBeaconPress}, 
+                React.createElement(Image, {
+                  style: {width: 120, height: 50}, 
+                  source: require('image!BattenBefore')}, 
+                  React.createElement(Text, {style: styles.beaconText}, 
+                    this._beautifyStationId(this.state.beacon)
+                  )
+                )
+              )
             )
+          ), 
+          React.createElement(ScrollView, {style: styles.result}, 
+            React.createElement(Text, {style: styles.resultTitle}, this.state.stationTitle), 
+            resultSeparator, 
+            listView
           )
-        ), 
-        React.createElement(View, {style: styles.result}, 
-          listView
         )
       )
     );
@@ -1189,29 +1190,67 @@ var SmartBustop = React.createClass({displayName: "SmartBustop",
 
   handleOnChange: function (text) {
     if (text.length > 5 || text.length < 5)
-      return this.setState({ dataSource: ds.cloneWithRows([]) });
+      return this.setState({
+        stationTitle: null,
+        dataSource: ds.cloneWithRows([])
+      });
     this._getData(text);
   },
 
   renderRow: function(rowData)  {
+    if (rowData.arrmsg1 === '운행종료') return (React.createElement(View, null));
+
+    var busStyleRaw = {
+      fontSize: 28,
+      marginRight: 10,
+      fontFamily: 'NanumGothicBold',
+    }
+    switch (rowData.routeType) {
+      case "3":
+        busStyleRaw.color = '#176097';
+        break;
+      case "2":
+      case "4":
+        busStyleRaw.color = '#73B074';
+        break;
+      case "5":
+        busStyleRaw.color = '#DBDF00';
+        break;
+      case "6":
+      case "7":
+        busStyleRaw.color = '#E62433';
+        break;
+      case "8":
+        busStyleRaw.color = '#0D8B84';
+        break;
+      default:
+        busStyleRaw.color = '#2D383E';
+        break;
+    }
+    var busStyle = new StyleSheet.create({style: busStyleRaw});
+    console.log ('nextBus:', rowData.nextBus)
+    var lastBus = (rowData.isLast1 !== '0')
+      ? (React.createElement(Image, {
+          style: styles.lastCall, 
+          source: require('image!makcha')}))
+      : (React.createElement(View, null));
     return (
       React.createElement(TouchableHighlight, {
-        underlayColor: "#dddddd"}, 
-        React.createElement(View, null, 
+        underlayColor: "#dddddd", 
+        style: {marginLeft: 10, marginRight: 10}}, 
+        React.createElement(View, {style: {marginLeft: 5, marginRight: 5}}, 
+          {lastBus:lastBus}, 
           React.createElement(View, {style: styles.row}, 
-            React.createElement(Text, {style: styles.busNumber}, 
+            React.createElement(Text, {style: busStyle.style}, 
               rowData.rtNm
             ), 
-            React.createElement(Text, {style: styles.busMsg}, 
-              rowData.arrmsg1
-            ), 
-            React.createElement(Text, {style: styles.destination}, 
-              rowData.stationNm1, "행"
-            )
-          ), 
-          React.createElement(View, {style: styles.row}, 
-            React.createElement(Text, {style: {flex: 1}}, 
-               (rowData.nextBus === "Y") ? "막차" : ""
+            React.createElement(View, {style: styles.busInfo}, 
+              React.createElement(Text, {style: styles.busMsg}, 
+                rowData.arrmsg1
+              ), 
+              React.createElement(Text, {style: styles.destination}, 
+                rowData.stationNm1, "행"
+              )
             )
           ), 
           React.createElement(View, {style: styles.separator})
@@ -1229,6 +1268,7 @@ var SmartBustop = React.createClass({displayName: "SmartBustop",
         var array = JSON.parse(restext).resultList;
         var sorted = _.sortBy(array, function(elem)  {return parseInt(elem.traTime1);});
         this.setState({
+          stationTitle: array[0].stNm,
           dataSource: ds.cloneWithRows(sorted),
           isLoading: false
         });
@@ -1249,78 +1289,38 @@ var SmartBustop = React.createClass({displayName: "SmartBustop",
   },
 
   _beautifyStationId: function (id) {
+    if (id.length === 0) return '없음';
     return id.slice(0, 2)+'-'+id.slice(2, id.length)
   },
-});
 
-var styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    // alignItems: 'center',
-    backgroundColor: '#F5FCFF',
+  _getListView: function () {
+    if (this.state.stationTitle){
+      return (
+        React.createElement(ListView, {
+          dataSource: this.state.dataSource, 
+          renderRow: this.renderRow}
+          )
+      );
+    } else if (this.state.isLoading) {
+      return (
+        React.createElement(Image, {
+          style: styles.loadingIndicator, 
+          source: require('image!windowLoading')}, 
+          React.createElement(ActivityIndicatorIOS, {
+            style: {top: 70, right: 75}, 
+            color: "#4C358A", 
+            hidden: "false", 
+            size: "small"})
+        )
+      );
+    } else {
+      return  (
+        React.createElement(Image, {
+          style: styles.loadingIndicator, 
+          source: require('image!windowEmpty')})
+      );
+    }
   },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
-    flex: 1
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
-  },
-  inputs: {
-    flexDirection: 'row',
-    flex: 1
-  },
-    textInput: {
-      flex: 1,
-      height: 50,
-      textAlign: 'center',
-      fontSize: 25,
-      paddingLeft: 18,
-      borderColor: 'gray',
-      borderWidth: 1,
-      marginLeft: 5,
-      marginRight: 5,
-    },
-    beacon: {
-      height: 50,
-      padding: 5,
-      flex: 1,
-    },
-    beaconTitle: {
-      fontSize: 14,
-      color: "#AAA"
-    },
-    beaconText: {
-      fontSize: 20,
-    },
-  result: {
-    flex: 10,
-    marginTop: 10,
-  },
-    busNumber: {
-      flex: 2,
-      color: '#900'
-    },
-    busMsg: {
-      flex: 3
-    },
-    destination: {
-      flex: 4
-    },
-    separator: {
-      height: 1,
-      backgroundColor: '#CCCCCC',
-    },
-
-  row: {
-    flexDirection: "row",
-    padding: 10,
-  }
 });
 
 AppRegistry.registerComponent('SmartBustop', function()  {return SmartBustop;});
@@ -42979,5 +42979,203 @@ __d('underscore/underscore',[],function(global, require, requireDynamic, require
   }
 }.call(this));
 });
+__d('SmartBustop/index.style',["react-native/Libraries/react-native/react-native","react-native-device/Device"],function(global, require, requireDynamic, requireLazy, module, exports) {  'use strict';
+
+var React = require('react-native/Libraries/react-native/react-native');
+var Device = require('react-native-device/Device');
+var $__0=    React,StyleSheet=$__0.StyleSheet;
+
+var styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+    backgroundImage: {
+      flex: 1,
+      // paddingHorizontal: 20,
+      width: Device.width,
+      height: Device.height,
+      top: 20,
+      paddingBottom: 40,
+      // width: 150
+    },
+  loadingIndicator: {
+    width: 718/2.2,
+    height: 509/2.2,
+    marginVertical: 50,
+    right: -20,
+    position: 'absolute'
+  },
+
+  welcome: {
+    fontSize: 20,
+    fontFamily: 'BM HANNA 11yrs old OTF',
+    textAlign: 'center',
+    margin: 10,
+  },
+  instructions: {
+    textAlign: 'center',
+    color: '#333333',
+    marginBottom: 5,
+  },
+  inputs: {
+    flexDirection: 'row',
+    height: 65,
+    paddingHorizontal: 10,
+  },
+    inputLeft: {
+      flex: 1
+    },
+      textInput: {
+        flex: 1,
+        height: 50,
+        textAlign: 'center',
+        color: '#59595B',
+        fontSize: 25,
+        paddingTop: 20,
+        paddingLeft: 35,
+        marginLeft: 5,
+        marginRight: 5,
+        fontFamily: 'NanumGothicBold',
+      },
+      inputSeparator: {
+        height: 3,
+        backgroundColor: '#4C358A'
+      },
+    inputRight: {
+      flexDirection: 'column',
+      width: 130,
+    },
+      beacon: {
+        flex: 1,
+      },
+      beaconTitle: {
+        fontSize: 10,
+        marginTop: 2,
+        marginLeft: 10,
+        marginBottom: 4,
+        fontFamily: 'NanumGothicBold',
+        color: "#AAA"
+      },
+      beaconText: {
+        paddingTop: 8,
+        paddingLeft: 15,
+        color: '#4C358A',
+        fontFamily: 'NanumGothicBold',
+        fontSize: 20,
+      },
+  result: {
+    flex: 1,
+    padding: 20,
+  },
+    resultTitle: {
+      marginLeft: 20,
+      marginTop: 5,
+      marginBottom: 25,
+      fontSize: 40,
+      fontFamily: 'BM HANNA 11yrs old OTF',
+      color: '#59595B',
+    },
+    resultSeparator: {
+      height: 2,
+      backgroundColor: '#AAA',
+      marginBottom: 20,
+    },
+    busInfo: {
+      flexDirection: 'column',
+      flex: 1,
+    },
+      busMsg: {
+        marginBottom: 5,
+        color: '#DF6135',
+        textAlign: 'right',
+        fontSize: 13,
+        fontFamily: 'NanumGothic',
+      },
+      destination: {
+        textAlign: 'right',
+        fontSize: 13,
+        fontFamily: 'NanumGothic',
+      },
+    separator: {
+      height: 1,
+      backgroundColor: '#CCCCCC',
+    },
+
+  row: {
+    flexDirection: "row",
+    paddingVertical: 10,
+  },
+  lastCall: {
+    width: 15,
+    height: 30,
+    top: 10,
+    left: -15,
+    position: 'absolute',
+  }
+});
+
+module.exports = styles;
+});
+__d('react-native-device/Device',["Dimensions"],function(global, require, requireDynamic, requireLazy, module, exports) {  var Dimensions = require('Dimensions');
+
+
+  function Device() {"use strict";
+    this.width = this.$Device_width();
+    this.height = this.$Device_height();
+    this.kind = this.$Device_kind();
+  }
+
+  Device.prototype.isIpad=function() {"use strict";
+    return this.kind.indexOf("iPad") === 0;
+  };
+
+  Device.prototype.isIphone=function() {"use strict";
+    return this.kind.indexOf("iPhone") === 0;
+  };
+
+  Device.prototype.$Device_kind=function() {"use strict";
+    var iPad = [768, 1024];
+    var iPhone4 = [320, 480];
+    var iPhone5 = [320, 568];
+    var iPhone6 = [375, 667];
+    var iPhone6plus = [414, 736];
+
+    if (iPad.indexOf(this.width) > -1 && iPad.indexOf(this.height) > -1) {
+      return "iPad";
+    }
+
+    if (iPhone4.indexOf(this.width) > -1 && iPhone4.indexOf(this.height) > -1) {
+      return "iPhone4";
+    }
+
+    if (iPhone5.indexOf(this.width) > -1 && iPhone5.indexOf(this.height) > -1) {
+      return "iPhone5";
+    }
+
+    if (iPhone6.indexOf(this.width) > -1 && iPhone6.indexOf(this.height) > -1) {
+      return "iPhone6";
+    }
+
+    if (iPhone6plus.indexOf(this.width) > -1 && iPhone6plus.indexOf(this.height) > -1) {
+      return "iPhone6plus";
+    }
+  };
+
+  Device.prototype.$Device_width=function() {"use strict";
+    return Dimensions.get("window").width;
+  };
+
+  Device.prototype.$Device_height=function() {"use strict";
+    return Dimensions.get("window").height;
+  };
+
+
+module.exports = new Device();
+});
+__d('image!background',[],function(global, require, requireDynamic, requireLazy, module, exports) {  module.exports = {"__packager_asset":true,"isStatic":true,"path":"/Users/KimSeokjun/Development/SmartBustop/iOS/Images.xcassets/background.imageset/background.png","uri":"background","width":881,"height":863,"deprecated":true};});
+__d('image!BattenBefore',[],function(global, require, requireDynamic, requireLazy, module, exports) {  module.exports = {"__packager_asset":true,"isStatic":true,"path":"/Users/KimSeokjun/Development/SmartBustop/iOS/Images.xcassets/BattenBefore.imageset/BattenBefore.png","uri":"BattenBefore","width":275,"height":131,"deprecated":true};});
+__d('image!makcha',[],function(global, require, requireDynamic, requireLazy, module, exports) {  module.exports = {"__packager_asset":true,"isStatic":true,"path":"/Users/KimSeokjun/Development/SmartBustop/iOS/Images.xcassets/makcha.imageset/makcha.png","uri":"makcha","width":30,"height":60,"deprecated":true};});
+__d('image!windowLoading',[],function(global, require, requireDynamic, requireLazy, module, exports) {  module.exports = {"__packager_asset":true,"isStatic":true,"path":"/Users/KimSeokjun/Development/SmartBustop/iOS/Images.xcassets/windowLoading.imageset/windowLoading.png","uri":"windowLoading","width":706,"height":508,"deprecated":true};});
+__d('image!windowEmpty',[],function(global, require, requireDynamic, requireLazy, module, exports) {  module.exports = {"__packager_asset":true,"isStatic":true,"path":"/Users/KimSeokjun/Development/SmartBustop/iOS/Images.xcassets/windowEmpty.imageset/windowEmpty.png","uri":"windowEmpty","width":705,"height":505,"deprecated":true};});
 ;require("SmartBustop/index.ios");
 //@ sourceMappingURL=/index.ios.map

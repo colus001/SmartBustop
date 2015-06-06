@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "react-native": "^0.4.4",
+    "react-native-device": "^0.2.0",
     "react-native-ibeacon": "^0.3.1"
   }
 }
