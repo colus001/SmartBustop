@@ -10,12 +10,11 @@ var styles = StyleSheet.create({
   },
     backgroundImage: {
       flex: 1,
-      // paddingHorizontal: 20,
       width: Device.width,
       height: Device.height,
       top: 20,
       paddingBottom: 40,
-      // width: 150
+      backgroundColor: 'transparent'
     },
   loadingIndicator: {
     width: 718/2.2,
@@ -44,7 +43,6 @@ var styles = StyleSheet.create({
         color: '#59595B',
         fontSize: 25,
         paddingTop: 20,
-        paddingLeft: 35,
         marginLeft: 5,
         marginRight: 5,
         fontFamily: 'NanumGothicBold',
@@ -72,6 +70,7 @@ var styles = StyleSheet.create({
         paddingTop: 8,
         paddingLeft: 15,
         color: '#4C358A',
+        backgroundColor: "transparent",
         fontFamily: 'NanumGothicBold',
         fontSize: 20,
       },
