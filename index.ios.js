@@ -22,9 +22,7 @@ var styles = require('./index.style.js');
 // Beacons.startUpdatingLocation();
 
 var DEFAULT_POSITION_BODY = {
-  radius: 100,
-  tmX: 126.91289069999998,
-  tmY: 37.5523603,
+  radius: 300,
 };
 
 // Listen for beacon changes
@@ -234,11 +232,11 @@ var SmartBustop = React.createClass({
   _getDataByPosition: function (position, options) {
     if (!position) return;
 
-    options = _.defaults({
+    options = _.defaults(options || {}, {
       initial: false
     });
 
-    var body = _.defaults(DEFAULT_POSITION_BODY, {
+    var body = _.extend(DEFAULT_POSITION_BODY, {
       tmX: position.coords.longitude,
       tmY: position.coords.latitude,
     });
@@ -255,11 +253,15 @@ var SmartBustop = React.createClass({
       .then((res) => res.text())
       .then((restext) => {
         var array = JSON.parse(restext).resultList;
-        var sorted = _.sortBy(array, (elem) => parseInt(elem.dist));
+        var sorted = _.chain(array).reject((e) => e.arsId === "0").sortBy((e) => parseInt(e.dist)).value();
         var nearest = _.first(sorted);
-        if (nearest) this.setState({ value: nearest.arsId });
-        else if (!options.initial) return alert('가까운 정류장이 없습니다.');
-        if (!options.initial) this._getData(nearest.arsId)
+
+        if (nearest)
+          this.setState({ value: nearest.arsId });
+        else if (!options.initial)
+          return alert('가까운 정류장이 없습니다.');
+
+        this._getData(nearest.arsId)
       })
       .catch((err) => {
         console.warn('warn:', err);
