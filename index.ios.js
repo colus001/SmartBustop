@@ -6,20 +6,9 @@
 
 var React = require('react-native');
 var { AppRegistry, StyleSheet, Text, TextInput, ListView, View, ScrollView, Image, TouchableHighlight, DeviceEventEmitter, ActivityIndicatorIOS, TouchableOpacity } = React;
-// var Beacons = require('react-native-ibeacon');
 
 var _ = require('underscore');
 var styles = require('./index.style.js');
-
-// var region = {
-//   identifier: 'SmartBustop',
-//   uuid: 'A495FF00-C5B1-4B44-B512-1370F02D74DE'
-// };
-//
-// Beacons.requestAlwaysAuthorization();
-// Beacons.startMonitoringForRegion(region);
-// Beacons.startRangingBeaconsInRegion(region);
-// Beacons.startUpdatingLocation();
 
 var DEFAULT_POSITION_BODY = {
   radius: 300,
@@ -30,17 +19,6 @@ var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 
 var SmartBustop = React.createClass({
   getInitialState: function () {
-    // var subscription = DeviceEventEmitter.addListener('beaconsDidRange', (data) => {
-    //   var nearestBeacon = data.beacons[0];
-    //   if ( !nearestBeacon ) return;
-    //   this.setState({ beacon: this._getStationIdFromBeacon(nearestBeacon) });
-    //
-    //   if ( this.state.isInitiating ) {
-    //     this.onBeaconPress(this._getStationIdFromBeacon(nearestBeacon));
-    //     this.setState({ isInitiating: false });
-    //   }
-    // });
-
     return {
       curText: '',
       beacon: '',
