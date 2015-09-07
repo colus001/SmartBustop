@@ -1,6 +1,6 @@
 # SmartBustop
 Korean bus station information reader with iBeacon
-Created with React-Native
+created with React-native for 12 hrs in a hackathon.
 
 ### Provided free-use fonts
 This app is made with fonts provided by companies below
@@ -37,3 +37,13 @@ This app is made with fonts provided by companies below
 `npm start`
 
 3. Run or build on xcode
+
+### DOING
+
+1. Replace beacon to GPS
+
+### TODO
+
+1. Ad-mob integration
+2. Detail view for each bus
+3. Gyeonggi-bus integration
